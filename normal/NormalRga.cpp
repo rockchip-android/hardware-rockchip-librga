@@ -708,7 +708,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 				dstVirW, dstVirH, &clip,
 				RkRgaGetRgaFormat(relDstRect.format),0);
 #endif
-	} else if (ctx->mVersion < 2.0) {
+	} else if (ctx->mVersion < 1.6) {
 		/*Src*/
 		if (srcFd != -1) {
 			srcMmuFlag = srcType ? 1 : 0;
@@ -960,7 +960,7 @@ int RgaCollorFill(rga_info *dst)
 				dstVirW, dstVirH, &clip,
 				RkRgaGetRgaFormat(relDstRect.format),0);
 #endif
-	} else if (ctx->mVersion < 2.0) {
+	} else if (ctx->mVersion < 1.6 ) {
 		/*dst*/
 		if (dstFd != -1) {
 			dstMmuFlag = dstType ? 1 : 0;
@@ -1331,7 +1331,7 @@ int RgaBlit(buffer_handle_t src,
 				dstVirW, dstVirH, &clip,
 				RkRgaGetRgaFormat(relRects.dst.format),0);
 #endif
-	} else if (ctx->mVersion < 2.0) {
+	} else if (ctx->mVersion < 1.6) {
 		/*Src*/
 		if (srcFd != -1) {
 			srcMmuFlag = srcType ? 1 : 0;
@@ -1689,7 +1689,7 @@ int RgaBlit(void *src,
 				dstVirW, dstVirH, &clip,
 				RkRgaGetRgaFormat(relRects.dst.format),0);
 #endif
-	} else if (ctx->mVersion < 2.0) {
+	} else if (ctx->mVersion < 1.6) {
 		/*Src*/
 		if (srcFd != -1) {
 			srcMmuFlag = srcType ? 1 : 0;
@@ -2044,7 +2044,7 @@ int RgaBlit(buffer_handle_t src,
 				dstVirW, dstVirH, &clip,
 				RkRgaGetRgaFormat(relRects.dst.format),0);
 #endif
-	} else if (ctx->mVersion < 2.0) {
+	} else if (ctx->mVersion < 1.6) {
 		/*Src*/
 		if (srcFd != -1) {
 			srcMmuFlag = srcType ? 1 : 0;
@@ -2391,7 +2391,7 @@ int RgaBlit(void *src, void *dst,
 				dstVirW, dstVirH, &clip,
 				RkRgaGetRgaFormat(relRects.dst.format),0);
 #endif
-	} else if (ctx->mVersion < 2.0) {
+	} else if (ctx->mVersion < 1.6) {
 		/*Src*/
 		if (srcFd != -1) {
 			srcMmuFlag = srcType ? 1 : 0;
