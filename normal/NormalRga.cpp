@@ -273,7 +273,8 @@ int NormalRgaPaletteTable(buffer_handle_t dst,
 	if (ctx->mLogAlways || ctx->mLogOnce) 
 		NormalRgaLogOutRgaReq(rgaReg);
 
-	if(ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg)) {
+	ret = ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg);
+	if (ret) {
 		printf(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 		ALOGE(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 	}
@@ -281,7 +282,7 @@ int NormalRgaPaletteTable(buffer_handle_t dst,
 	if (ctx->mLogOnce)
 		ctx->mLogOnce = 0;
 
-	return 0;
+	return ret;
 }
 
 int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
@@ -840,12 +841,13 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	ALOGD("%d,%d,%d", srcMmuFlag, dstMmuFlag,rotateMode);
 	NormalRgaLogOutRgaReq(rgaReg);
 
-	if(ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg)) {
+	ret = ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg);
+	if (ret) {
 		printf(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 		ALOGE(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 	}
 
-	return 0;
+	return ret;
 }
 
 int RgaCollorFill(rga_info *dst)
@@ -1034,12 +1036,13 @@ int RgaCollorFill(rga_info *dst)
 	//ALOGD("%d,%d,%d", srcMmuFlag, dstMmuFlag,rotateMode);
 	//NormalRgaLogOutRgaReq(rgaReg);
 
-	if(ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg)) {
+	ret = ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg);
+	if (ret) {
 		printf(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 		ALOGE(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 	}
 
-	return 0;
+	return ret;
 }
 
 int RgaBlit(buffer_handle_t src,
@@ -1419,7 +1422,8 @@ int RgaBlit(buffer_handle_t src,
 		NormalRgaMmuFlag(&rgaReg, srcMmuFlag, dstMmuFlag);
 	}
 
-	if(ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg)) {
+	ret = ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg);
+	if (ret) {
 		printf(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 		ALOGE(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 	}
@@ -1427,7 +1431,7 @@ int RgaBlit(buffer_handle_t src,
 	if (ctx->mLogOnce)
 		ctx->mLogOnce = 0;
 
-	return 0;
+	return ret;
 }
 
 int RgaBlit(void *src,
@@ -1777,12 +1781,13 @@ int RgaBlit(void *src,
 		NormalRgaMmuFlag(&rgaReg, srcMmuFlag, dstMmuFlag);
 	}
 
-	if(ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg)) {
+	ret = ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg);
+	if (ret) {
 		printf(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 		ALOGE(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 	}
 
-	return 0;
+	return ret;
 }
 
 int RgaBlit(buffer_handle_t src,
@@ -2132,12 +2137,13 @@ int RgaBlit(buffer_handle_t src,
 		NormalRgaMmuFlag(&rgaReg, srcMmuFlag, dstMmuFlag);
 	}
 
-	if(ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg)) {
+	ret = ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg);
+	if (ret) {
 		printf(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 		ALOGE(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 	}
 
-	return 0;
+	return ret;
 }
 
 int RgaBlit(void *src, void *dst,
@@ -2479,7 +2485,8 @@ int RgaBlit(void *src, void *dst,
 		NormalRgaMmuFlag(&rgaReg, srcMmuFlag, dstMmuFlag);
 	}
 
-	if(ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg)) {
+	ret = ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg);
+	if (ret) {
 		printf(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 		ALOGE(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 	}
@@ -2487,7 +2494,7 @@ int RgaBlit(void *src, void *dst,
 	if (ctx->mLogOnce)
 		ctx->mLogOnce = 0;
 
-	return 0;
+	return ret;
 }
 
 int NormalRgaScale()
