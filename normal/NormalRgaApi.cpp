@@ -185,7 +185,7 @@ int NormalRgaSetFdsOffsets(struct rga_req *req,
 		uint16_t src_fd,     uint16_t dst_fd,
 		uint32_t src_offset, uint32_t dst_offset)
 {
-	req->line_draw_info.color = src_fd | (dst_fd << 16);
+	req->line_draw_info.color |= src_fd | (dst_fd << 16);
 	req->line_draw_info.flag = src_offset;
 	req->line_draw_info.line_width = dst_offset;
 	return 0;
