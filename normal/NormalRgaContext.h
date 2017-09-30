@@ -19,5 +19,7 @@ struct rgaContext{
     int mLogAlways;
     int mLogOnce;
     float mVersion;
+	int Is_debug;
+	
 };
 #endif
