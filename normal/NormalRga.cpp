@@ -347,11 +347,13 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	void *src1Buf = NULL;
 	RECT clip;
 
+	//init context
 	if (!ctx) {
 		ALOGE("Try to use uninit rgaCtx=%p",ctx);
 		return -ENODEV;
 	}
 
+	//init
 	memset(&rgaReg, 0, sizeof(struct rga_req));
 
 	srcType = dstType = srcMmuFlag = dstMmuFlag = 0;
@@ -359,11 +361,12 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	rotation = 0;
 	blend = 0;
 	yuvToRgbMode = 0;
-    
-    is_debug_log();
-    if(is_out_log())
+
+	//print debug log by setting property sys.rga.log as 1
+    	is_debug_log();
+    	if(is_out_log())
         ALOGD("<<<<-------- print rgaLog -------->>>>");
-    
+
 	if (!src && !dst && !src1) {
 		ALOGE("src = %p, dst = %p, src1 = %p", src, dst, src1);
 		return -EINVAL;
@@ -374,12 +377,17 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 		return -EINVAL;
 	}
 
+	/*
+	 *1.if src exist, get some parameter from src, such as rotatiom.
+	 *2.if need to blend, need blend variable from src to decide how to blend.
+	 *3.get effective area from src, if the area is empty, choose to get parameter from handle.
+	 * */
 	if (src) {
 		rotation = src->rotation;
 		blend = src->blend;
 		memcpy(&relSrcRect, &src->rect, sizeof(rga_rect_t));
 	}
-
+	//get effective area from dst and src1, if the area is empty, choose to get parameter from handle.
 	if (dst)
 		memcpy(&relDstRect, &dst->rect, sizeof(rga_rect_t));
 	if (src1)
@@ -388,9 +396,10 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	srcFd = dstFd = src1Fd = -1;
     if(is_out_log())
     ALOGD("src->hnd = %p , dst->hnd = %p \n",src->hnd,dst->hnd);
-  
+
 	if (src && src->hnd) {
 #ifndef RK3188
+		//RK3188 is special, cannot configure rga through fd.
         if(src->fd <= 0 ){
     		ret = RkRgaGetHandleFd(src->hnd, &srcFd);
     		if (ret) {
@@ -400,6 +409,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
     		}
         }
 #endif
+		//first to use user's parameter if user has passed effective parameter.if not, choose to use handle as using parameter.
 		if (!isRectValid(relSrcRect)) {
 			ret = NormalRgaGetRect(src->hnd, &tmpSrcRect);
 			if (ret){
@@ -440,13 +450,15 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
     
     if(is_out_log())
         ALOGD("srcFd = %.2d , phyAddr = %x , virAddr = %x\n",srcFd,src->phyAddr,src->virAddr);
-    
+	//First to use phyical address or fd, second to usr virtual address. Phyical address can save time beacause cpu 
+	//don't need to set up mmu linked list.
 	if (src && src->phyAddr)
 		srcBuf = src->phyAddr;
 	else if (src && src->virAddr)
 		srcBuf = src->virAddr;
 #ifndef RK3368_ANDROID_8
 	else if (src && src->hnd)
+		//Get virtual addresss by lock action(on libgralloc)
 		ret = RkRgaGetHandleMapAddress(src->hnd, &srcBuf);
 #endif		//RK3368_ANDROID_8
 
@@ -460,6 +472,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 		return -EINVAL;
 	}
 
+	//Old rga driver cannot support fd as zero.
 	if (srcFd == 0)
 		srcFd = -1;
 
@@ -468,7 +481,9 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
     
     if(is_out_log())
         ALOGD("dstFd = %.2d , phyAddr = %x , virAddr = %x\n",dstFd,dst->phyAddr,dst->virAddr);
-
+	
+	//First to use phyical address or fd, second to usr virtual address. Phyical address can save time beacause cpu
+	//don't need to set up mmu linked list.  
 	if (dst && dst->phyAddr)
 		dstBuf = dst->phyAddr;
 	else if (dst && dst->virAddr)
@@ -497,12 +512,16 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	if (src1Fd == 0)
 		src1Fd = -1;
 
+	//blend bit[16:23] is to set global alpha.
 	planeAlpha = (blend & 0xFF0000) >> 16;
+
+	//determined by format, need pixel alpha or not.
 	perpixelAlpha = relSrcRect.format == HAL_PIXEL_FORMAT_RGBA_8888 ||
 		relSrcRect.format == HAL_PIXEL_FORMAT_BGRA_8888;
     if(is_out_log())
         ALOGD("blend = %x , perpixelAlpha = %d",blend ,perpixelAlpha);
 
+	//blend bit[0:15] is to set which way to blend,such as whether need glabal alpha,and so on.
 	switch ((blend & 0xFFFF)) {
 		case 0x0105:
 			if (perpixelAlpha && planeAlpha < 255){
@@ -531,6 +550,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 			break;
 	}
 
+	//discripe a picture need high stride.If high stride not to be set, need use height as high stride.
 	if (relSrcRect.hstride == 0)
 		relSrcRect.hstride = relSrcRect.height;
 
@@ -540,6 +560,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	//if (relSrcRect.format == HAL_PIXEL_FORMAT_YCrCb_NV12_10)
 	//	    relSrcRect.wstride = relSrcRect.wstride * 5 / 4;
 
+	//do some check, check the area of src and dst whether is effective.
 	if (src) {
 		ret = checkRectForRga(relSrcRect);
 		if (ret) {
@@ -558,6 +579,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 		}
 	}
 
+	//check the scale magnification.
 	if (src && dst) {
 		hScale = (float)relSrcRect.width / relDstRect.width;
 		vScale = (float)relSrcRect.height / relDstRect.height;
@@ -579,6 +601,8 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 			return -EINVAL;
 		}
 	}
+	
+	//reselect the scale mode.
     scaleMode = 0;
     stretch = (hScale != 1.0f) || (vScale != 1.0f);
     //scale up use bicubic
@@ -591,7 +615,9 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	}
     if(is_out_log())
         ALOGD("scaleMode = %d , stretch = %d;",scaleMode,stretch);
-    
+
+	//according to the rotation to set corresponding parameter.It's diffrient from the opengl.
+	//Following's config which use frequently 
 	switch (rotation) {
 		case HAL_TRANSFORM_FLIP_H:
 			orientation = 0;
@@ -699,6 +725,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 			break;
 	}
 
+	//if pictual out of range should be cliped.
 	clip.xmin = 0;
 	clip.xmax = dstVirW - 1;
 	clip.ymin = 0;
@@ -711,6 +738,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
     if(is_out_log())
         ALOGD("rgaVersion = %lf  , ditherEn =%d ",ctx->mVersion,ditherEn);
     
+	//only to configure the parameter by driver version, because rga driver has too many version.
     if (ctx->mVersion <= (float)1.003) {
         srcMmuFlag = dstMmuFlag = 1;
 
@@ -740,6 +768,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
         		RkRgaGetRgaFormat(relDstRect.format),0);
         
 #endif
+		//the version 1.005 is different to assign fd from version 2.0 and above
         } else if (ctx->mVersion < (float)1.6) {
             /*Src*/
             if (srcFd != -1) {
@@ -853,19 +882,27 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 #endif
         }
 
+	//set effective area of src and dst.
 	NormalRgaSetSrcActiveInfo(&rgaReg, srcActW, srcActH, srcXPos, srcYPos);
 	NormalRgaSetDstActiveInfo(&rgaReg, dstActW, dstActH, dstXPos, dstYPos);
 //    NormalRgaSetPatActiveInfo(&rgaReg, src1ActW, src1ActH, src1XPos, src1YPos);
 
+	//special config for yuv to rgb
 	if (NormalRgaIsYuvFormat(RkRgaGetRgaFormat(relSrcRect.format)) &&
 			NormalRgaIsRgbFormat(RkRgaGetRgaFormat(relDstRect.format)))
 		yuvToRgbMode |= 0x1 << 0;
 
+	//special config for rgb to yuv
 	if (NormalRgaIsRgbFormat(RkRgaGetRgaFormat(relSrcRect.format)) &&
 			NormalRgaIsYuvFormat(RkRgaGetRgaFormat(relDstRect.format)))
 		yuvToRgbMode |= 0x1 << 4;
 
 	/*mode*/
+	//scaleMode:set different algorithm to scale.
+	//rotateMode:rotation mode
+	//Orientation:rotation orientation
+	//ditherEn:enable or not.
+	//yuvToRgbMode:yuv to rgb, rgb to yuv , or others
 	NormalRgaSetBitbltMode(&rgaReg, scaleMode, rotateMode, orientation,
 			ditherEn, 0, yuvToRgbMode);
 
@@ -875,6 +912,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	}
 
 	/*color key*/
+	//if need this funtion, maybe should patch the rga driver.
 	if(src->colorkey_en == 1) {
 		NormalRgaSetSrcTransModeInfo(&rgaReg, 0, 1, 1, 1, 1, src->colorkey_min, src->colorkey_max, 1);
 	}
@@ -887,10 +925,12 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 
 #ifndef RK3368	
 #ifdef	ANDROID_7_DRM
+	//if Android 7.0 and above using drm should configure this parameter.
 	rgaReg.render_mode |= RGA_BUF_GEM_TYPE_DMA;
 #endif
 #endif
 
+	//using sync to pass config to rga driver.
 	if(ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg)) {
 		printf(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 		ALOGE(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
