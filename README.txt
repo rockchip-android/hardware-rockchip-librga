@@ -10,7 +10,7 @@ Rockchip rk3399  6.0 / 7.1
 
 RGA使用帮助：
 
-1、解压文件到hardware/rockchip/librga或者hardware/rk29/librga
+1、复制librga文件夹到hardware/rockchip/librga或者hardware/rk29/librga
 
 2、在/librga目录下编译，在~/out/target/product/rk312x（sdk版本）/system/lib/生成librga.so链接库，
 push librga.so到设备system/lib 目录 （64位系统对应lib64）

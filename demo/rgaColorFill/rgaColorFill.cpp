@@ -124,7 +124,13 @@ int main()
     } else 
         printf("lock buffer_dst %s \n","ok");
 
-
+	/********** buffer initialize **********/
+	/* Notice :
+	 *          RGBA8888 4 bytes
+	 *          YUV      1.5 bytes
+	 *          RGB565   2 bytes
+	 * so,if you want to memset YUV_buffer please 1.5*xx*xx
+	 */
     memset(buf,0x00,4*1280*720);
 
 

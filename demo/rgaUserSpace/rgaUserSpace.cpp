@@ -107,19 +107,13 @@ int main()
 	
 	/********** get data to src_buffer or init buffer**********/
     char* buf = (char *)src;
-#if 1
     get_buf_from_file(buf, srcFormat, srcWidth, srcHeight, 1);
-#else
-    memset(buf,0x55,4*1280*720);
-#endif
+
 
 	/********** get data to dst_buffer or init buffer **********/
     buf = (char *)dst;
-#if 1
     get_buf_from_file(buf, srcFormat, srcWidth, srcHeight, 0);
-#else
-    memset(buf,0x00,4*1280*720);
-#endif
+
 	
     while(1) {
 		/********** rga_info_t Init **********/

@@ -209,10 +209,10 @@ int main()
      ******************************/
     ret = gbd->unlock();
     if (ret) {
-        printf("unlock buffer_src error : %s\n",strerror(errno));
+        printf("unlock buffer_dst error : %s\n",strerror(errno));
         return ret;
     } else 
-        printf("unlock buffer_src %s \n","ok");
+        printf("unlock buffer_dst %s \n","ok");
 
     while(1) {
        /******************************
@@ -230,7 +230,7 @@ int main()
     	memset(&dst, 0, sizeof(rga_info_t));
     	dst.fd = -1;
     	dst.mmuFlag = 1;
-	dst.hnd = gbd->handle;
+        dst.hnd = gbd->handle;
 		
         /******************************
          * Get Src_fd:
@@ -298,7 +298,7 @@ int main()
          * Set The rga_mod:
          * Configure RGA work mode,here is Compositing Mode
          ******************************/
-        src.blend = 0xff0405;
+        src.blend = 0xff0105;
 		
         /******************************
          * Calling Rga_Interface:
@@ -307,8 +307,8 @@ int main()
          * 3.Print the time-consuming of RGA
          ******************************/
         struct timeval tpend1, tpend2;
-	long usec1 = 0;
-	gettimeofday(&tpend1, NULL);
+        long usec1 = 0;
+        gettimeofday(&tpend1, NULL);
 		
         ret = rkRga.RkRgaBlit(&src, &dst, NULL);
         if (ret) {

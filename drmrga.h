@@ -87,7 +87,8 @@ typedef struct rga_info {
 	int colorkey_en;
 	int colorkey_max;
 	int colorkey_min;
-	int reserve[125];
+	int rop_code;
+	int reserve[124];
 } rga_info_t;
 
 

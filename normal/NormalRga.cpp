@@ -1,14 +1,12 @@
 /*
- * Copyright (C) 2016 Rockchip Electronics Co.Ltd
- * Authors:
- *	Zhiqin Wei <wzq@rock-chips.com>
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- *
+ * Copyright (C) 2017 Rockchip Electronics Co.Ltd
+ * Author: Libin   <bin.li@rock-chips.com>
+ *         Lihuang <putin.li@rock-chips.com>
+ * Date: 2017-11-13
+ * Description: Packaging RGA Interface,Contains RGA version
+ *      1.003 \ 1.6 \ 2.0 \ above 2.0
  */
+
 #include "NormalRga.h"
 #include "NormalRgaContext.h"
 #include "../GraphicBuffer.h"
@@ -18,36 +16,41 @@
 volatile int32_t refCount = 0;
 struct rgaContext *rgaCtx = NULL;
 
-void NormalRgaSetLogOnceFlag(int log)
-{
-	struct rgaContext *ctx = NULL;
-
-	ctx->mLogOnce = log;
-	return;
-}
-
-void NormalRgaSetAlwaysLogFlag(int log)
-{
-	struct rgaContext *ctx = NULL;
-
-	ctx->mLogAlways = log;
-	return;
-}
-
+/*************************************************
+ * Function:       is_debug_log( void )
+ * Description:    Get property sys.rga.log value,to set ctx->Is_debug
+ * Input:          Void
+ * Output:         ctx->Is_debug
+*************************************************/
 void is_debug_log(void)
 {
     struct rgaContext *ctx = rgaCtx;
 
     ctx->Is_debug = hwc_get_int_property("sys.rga.log","0");
-    
+
 }
+
+/*************************************************
+ * Function:       is_out_log( void )
+ * Description:    Determined whether output RGA log
+ * Input:          Void
+ * Return:         ctx->Is_debug
+*************************************************/
 int is_out_log( void )
 {
     struct rgaContext *ctx = rgaCtx;
 
     return ctx->Is_debug;
 }
-//return property value of pcProperty
+
+/*************************************************
+ * Function:       hwc_get_int_property()
+ * Description:    Get value of system property
+ * Input:          pcProperty : system property
+ *                 default_value : if unset property,
+ *                 use default value
+ * Return:         new_value :system property value
+*************************************************/
 int hwc_get_int_property(const char* pcProperty, const char* default_value)
 {
     char value[PROPERTY_VALUE_MAX];
@@ -65,7 +68,14 @@ int hwc_get_int_property(const char* pcProperty, const char* default_value)
     return new_value;
 }
 
-
+/*************************************************
+ * Function:       NormalRgaOpen()
+ * Description:    Open RGA device and set context
+ * Input:          void **context
+ * Return:         Ret:
+ *                      0 : succee
+ *                     >0 : errno
+*************************************************/
 int NormalRgaOpen(void **context)
 {
 	struct rgaContext *ctx = NULL;
@@ -123,6 +133,14 @@ mallocErr:
 	return ret;
 }
 
+/*************************************************
+ * Function:       NormalRgaClose()
+ * Description:    Close RGA device and context
+ * Input:          void **context
+ * Return:         Ret:
+ *                      0 : succee
+ *                     >0 : errno
+*************************************************/
 int NormalRgaClose(void *context)
 {
 	struct rgaContext *ctx = rgaCtx;
@@ -159,13 +177,28 @@ int NormalRgaClose(void *context)
 	return 0;
 }
 
+/*************************************************
+ * Function:       RgaInit()
+ * Description:    RGA initialization function.
+ * Input:          void **ctx : get rga context
+ * Return:         ret:
+ *                      0:succee
+ *                     >0:errno
+ ************************************************/
 int RgaInit(void **ctx)
 {
 	int ret = 0;
 	ret = NormalRgaOpen(ctx);
 	return ret;
 }
-
+/*************************************************
+ * Function:       RgaDeInit()
+ * Description:    RGA close function.
+ * Input:          void **ctx : get rga context
+ * Return:         ret:
+ *                      0:succee
+ *                     >0:errno
+ ************************************************/
 int RgaDeInit(void *ctx)
 {
 	int ret = 0;
@@ -173,7 +206,12 @@ int RgaDeInit(void *ctx)
 	return ret;
 }
 
-int NormalRgaPaletteTable(buffer_handle_t dst, 
+/*************************************************
+ * Function:       NormalRgaPaletteTable()
+ * Description:    Unuse interface don't care.
+ ************************************************/
+#if 0
+int NormalRgaPaletteTable(buffer_handle_t dst,
 		unsigned int v, drm_rga_t *rects)
 {
 	//check rects
@@ -202,7 +240,7 @@ int NormalRgaPaletteTable(buffer_handle_t dst,
 	if (rects && (ctx->mLogAlways || ctx->mLogOnce)) {
 		ALOGD("Src:[%d,%d,%d,%d][%d,%d,%d]=>Dst:[%d,%d,%d,%d][%d,%d,%d]",
 				rects->src.xoffset,rects->src.yoffset,
-				rects->src.width, rects->src.height, 
+				rects->src.width, rects->src.height,
 				rects->src.wstride,rects->src.format, rects->src.size,
 				rects->dst.xoffset,rects->dst.yoffset,
 				rects->dst.width, rects->dst.height,
@@ -281,7 +319,7 @@ int NormalRgaPaletteTable(buffer_handle_t dst,
 	NormalRgaSetSrcActiveInfo(&rgaReg, srcActW, srcActH, srcXPos, srcYPos);
 	NormalRgaSetDstActiveInfo(&rgaReg, dstActW, dstActH, dstXPos, dstYPos);
 	NormalRgaSetSrcVirtualInfo(&rgaReg, (unsigned long)srcBuf,
-			(unsigned long)srcBuf + srcVirW * srcVirH, 
+			(unsigned long)srcBuf + srcVirW * srcVirH,
 			(unsigned long)srcBuf + srcVirW * srcVirH * 5/4,
 			srcVirW, srcVirH,
 			RkRgaGetRgaFormat(relRects.src.format),0);
@@ -303,7 +341,7 @@ int NormalRgaPaletteTable(buffer_handle_t dst,
 		NormalRgaMmuFlag(&rgaReg, srcMmuFlag, dstMmuFlag);
 	}
 
-	if (ctx->mLogAlways || ctx->mLogOnce) 
+	if (ctx->mLogAlways || ctx->mLogOnce)
 		NormalRgaLogOutRgaReq(rgaReg);
 
 	if(ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg)) {
@@ -316,11 +354,21 @@ int NormalRgaPaletteTable(buffer_handle_t dst,
 
 	return 0;
 }
+#endif
 
+/*************************************************
+ * Function:       RgaBlit()
+ * Description:    RGA main interface:
+ *                  1.Check argument from user.
+ *                  2.Used to set RGA_Request to operate RGA .
+ * Input:          rga_info contains image_info such as fd ,virAddr,w,h and so on
+ *                 current RGA version don't use the src1,so src1 is always NULL
+ * Return:         ret:
+ *                   0   : succee
+ *                   !=0 : errno
+ ************************************************/
 int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 {
-	//check rects
-	//check buffer_handle_t with rects
 	struct rgaContext *ctx = rgaCtx;
 	int srcVirW,srcVirH,srcActW,srcActH,srcXPos,srcYPos;
 	int dstVirW,dstVirH,dstActW,dstActH,dstXPos,dstYPos;
@@ -347,13 +395,13 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	void *src1Buf = NULL;
 	RECT clip;
 
-	//init context
+	/* Check rgaCtx validity , rgaCtx is created in NormalRgaOpen() */
 	if (!ctx) {
 		ALOGE("Try to use uninit rgaCtx=%p",ctx);
 		return -ENODEV;
 	}
 
-	//init
+	/* Init rgaReg , All to the operation of the RGA in rgaReg */
 	memset(&rgaReg, 0, sizeof(struct rga_req));
 
 	srcType = dstType = srcMmuFlag = dstMmuFlag = 0;
@@ -362,9 +410,11 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	blend = 0;
 	yuvToRgbMode = 0;
 
-	//print debug log by setting property sys.rga.log as 1
-    	is_debug_log();
-    	if(is_out_log())
+	/* Call is_debug_log() to get value from property sys.rga.log  */
+    is_debug_log();
+
+    /* Call is_out_log() to decide whether output debug log */
+    if(is_out_log())
         ALOGD("<<<<-------- print rgaLog -------->>>>");
 
 	if (!src && !dst && !src1) {
@@ -377,29 +427,26 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 		return -EINVAL;
 	}
 
-	/*
-	 *1.if src exist, get some parameter from src, such as rotatiom.
-	 *2.if need to blend, need blend variable from src to decide how to blend.
-	 *3.get effective area from src, if the area is empty, choose to get parameter from handle.
-	 * */
+	/* Check src,save rotation and blend from src ,save rect from src */
 	if (src) {
 		rotation = src->rotation;
 		blend = src->blend;
 		memcpy(&relSrcRect, &src->rect, sizeof(rga_rect_t));
 	}
-	//get effective area from dst and src1, if the area is empty, choose to get parameter from handle.
+    /* Save rect from dst */
 	if (dst)
 		memcpy(&relDstRect, &dst->rect, sizeof(rga_rect_t));
-	if (src1)
-		memcpy(&relSrc1Rect, &src1->rect, sizeof(rga_rect_t));
 
+    /* Init Fd */
 	srcFd = dstFd = src1Fd = -1;
-    if(is_out_log())
-    ALOGD("src->hnd = %p , dst->hnd = %p \n",src->hnd,dst->hnd);
 
+    if(is_out_log())
+        ALOGD("src->hnd = %p , dst->hnd = %p \n",src->hnd,dst->hnd);
+
+    /* We can use handle to get Fd , default rect and MmuType */
 	if (src && src->hnd) {
+    /* RK3188 RGA can't use Fd , only use virtual address */
 #ifndef RK3188
-		//RK3188 is special, cannot configure rga through fd.
         if(src->fd <= 0 ){
     		ret = RkRgaGetHandleFd(src->hnd, &srcFd);
     		if (ret) {
@@ -409,19 +456,21 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
     		}
         }
 #endif
-		//first to use user's parameter if user has passed effective parameter.if not, choose to use handle as using parameter.
+		/* Check Rect from user ,if illegal ,try to get default Rect by handle */
 		if (!isRectValid(relSrcRect)) {
 			ret = NormalRgaGetRect(src->hnd, &tmpSrcRect);
 			if (ret){
                 ALOGE("src handleGetRect fail ,ret = %d,hnd=%p", ret, &src->hnd);
-			    printf("src handleGetRect fail ,ret = %d,hnd=%p", ret, &src->hnd);   
+			    printf("src handleGetRect fail ,ret = %d,hnd=%p", ret, &src->hnd);
 				return ret;
 			}
 			memcpy(&relSrcRect, &tmpSrcRect, sizeof(rga_rect_t));
 		}
+        /*Get MmuType by handle */
 		NormalRgaGetMmuType(src->hnd, &srcType);
 	}
 
+    /* The same to src */
 	if (dst && dst->hnd) {
 #ifndef RK3188
         if(src->fd <= 0 ){
@@ -437,31 +486,34 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 			ret = NormalRgaGetRect(dst->hnd, &tmpDstRect);
 			if (ret){
                 ALOGE("dst handleGetRect fail ,ret = %d,hnd=%p", ret, &dst->hnd);
-			    printf("dst handleGetRect fail ,ret = %d,hnd=%p", ret, &dst->hnd);   
+			    printf("dst handleGetRect fail ,ret = %d,hnd=%p", ret, &dst->hnd);
 				return ret;
 			}
 			memcpy(&relDstRect, &tmpDstRect, sizeof(rga_rect_t));
 		}
 		NormalRgaGetMmuType(dst->hnd, &dstType);
 	}
-	
+
+    /* If fd is illegal,use fd from user */
 	if (src && srcFd < 0)
 		srcFd = src->fd;
-    
+
+    /* Output address_info from user */
     if(is_out_log())
         ALOGD("srcFd = %.2d , phyAddr = %x , virAddr = %x\n",srcFd,src->phyAddr,src->virAddr);
-	//First to use phyical address or fd, second to usr virtual address. Phyical address can save time beacause cpu 
-	//don't need to set up mmu linked list.
+
+	/* The priority of address : phyAddr > virAddr. if none , try to get virAddr by handle */
 	if (src && src->phyAddr)
 		srcBuf = src->phyAddr;
 	else if (src && src->virAddr)
 		srcBuf = src->virAddr;
+    /* Android 8.0 can't use handle to get virAddr */
 #ifndef RK3368_ANDROID_8
 	else if (src && src->hnd)
-		//Get virtual addresss by lock action(on libgralloc)
 		ret = RkRgaGetHandleMapAddress(src->hnd, &srcBuf);
-#endif		//RK3368_ANDROID_8
+#endif
 
+    /* Validity check */
 	if (srcFd == -1 && !srcBuf) {
 		ALOGE("%d:src has not fd and address for render", __LINE__);
 		return ret;
@@ -471,19 +523,17 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 		ALOGE("srcFd is zero, now driver not support");
 		return -EINVAL;
 	}
-
-	//Old rga driver cannot support fd as zero.
+	/*Old rga driver cannot support fd as zero.*/
 	if (srcFd == 0)
 		srcFd = -1;
 
+    /* The same to src */
 	if (dst && dstFd < 0)
 		dstFd = dst->fd;
-    
+
     if(is_out_log())
         ALOGD("dstFd = %.2d , phyAddr = %x , virAddr = %x\n",dstFd,dst->phyAddr,dst->virAddr);
-	
-	//First to use phyical address or fd, second to usr virtual address. Phyical address can save time beacause cpu
-	//don't need to set up mmu linked list.  
+
 	if (dst && dst->phyAddr)
 		dstBuf = dst->phyAddr;
 	else if (dst && dst->virAddr)
@@ -491,11 +541,11 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 #ifndef RK3368_ANDROID_8
 	else if (dst && dst->hnd)
 		ret = RkRgaGetHandleMapAddress(dst->hnd, &dstBuf);
-#endif		//RK3368_ANDROID_8
-    
+#endif
+
     if(is_out_log())
         ALOGD("srcBuf = %x , dstBuf = %x\n",srcBuf,dstBuf);
-    
+
 	if (dst && dstFd == -1 && !dstBuf) {
 		ALOGE("%d:dst has not fd and address for render", __LINE__);
 		return ret;
@@ -512,16 +562,17 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	if (src1Fd == 0)
 		src1Fd = -1;
 
-	//blend bit[16:23] is to set global alpha.
+	/* Blend bit[16:23] is global alpha. */
 	planeAlpha = (blend & 0xFF0000) >> 16;
 
-	//determined by format, need pixel alpha or not.
+	/* perpixelAlpha = 1 ,if formate is RGBA */
 	perpixelAlpha = relSrcRect.format == HAL_PIXEL_FORMAT_RGBA_8888 ||
 		relSrcRect.format == HAL_PIXEL_FORMAT_BGRA_8888;
+
     if(is_out_log())
         ALOGD("blend = %x , perpixelAlpha = %d",blend ,perpixelAlpha);
 
-	//blend bit[0:15] is to set which way to blend,such as whether need glabal alpha,and so on.
+	/* blend bit[0:15] is to choose alpha mode */
 	switch ((blend & 0xFFFF)) {
 		case 0x0105:
 			if (perpixelAlpha && planeAlpha < 255){
@@ -550,7 +601,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 			break;
 	}
 
-	//discripe a picture need high stride.If high stride not to be set, need use height as high stride.
+	/* Discripe a picture need high stride.If high stride not to be set, need use height as high stride.*/
 	if (relSrcRect.hstride == 0)
 		relSrcRect.hstride = relSrcRect.height;
 
@@ -560,7 +611,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	//if (relSrcRect.format == HAL_PIXEL_FORMAT_YCrCb_NV12_10)
 	//	    relSrcRect.wstride = relSrcRect.wstride * 5 / 4;
 
-	//do some check, check the area of src and dst whether is effective.
+	/* Check relSrcRect validity */
 	if (src) {
 		ret = checkRectForRga(relSrcRect);
 		if (ret) {
@@ -570,6 +621,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 		}
 	}
 
+    /* Check relDstRect validity */
 	if (dst) {
 		ret = checkRectForRga(relDstRect);
 		if (ret) {
@@ -579,7 +631,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 		}
 	}
 
-	//check the scale magnification.
+	/* Calculate the scale coefficient */
 	if (src && dst) {
 		hScale = (float)relSrcRect.width / relDstRect.width;
 		vScale = (float)relSrcRect.height / relDstRect.height;
@@ -601,23 +653,23 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 			return -EINVAL;
 		}
 	}
-	
-	//reselect the scale mode.
+
+	/* Init scaleMode and stretch = 1 if scale */
     scaleMode = 0;
     stretch = (hScale != 1.0f) || (vScale != 1.0f);
-    //scale up use bicubic
+    /* Choose scaleMode:  0 nearst / 1 bilnear / 2 bicubic */
 	if (hScale < 1 || vScale < 1)
     {
 		scaleMode = 2;
+        /* RGA only support RGBA scale by nearst */
         if((src->format == HAL_PIXEL_FORMAT_RGBA_8888  ||src->format == HAL_PIXEL_FORMAT_BGRA_8888)){
-            scaleMode = 0;     //  force change scale_mode to 0 ,for rga not support
+            scaleMode = 0;
         }
 	}
     if(is_out_log())
         ALOGD("scaleMode = %d , stretch = %d;",scaleMode,stretch);
 
-	//according to the rotation to set corresponding parameter.It's diffrient from the opengl.
-	//Following's config which use frequently 
+	/* Choose suitable argument by rotation mode */
 	switch (rotation) {
 		case HAL_TRANSFORM_FLIP_H:
 			orientation = 0;
@@ -725,38 +777,40 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 			break;
 	}
 
-	//if pictual out of range should be cliped.
+    /* Clip viewport */
 	clip.xmin = 0;
 	clip.xmax = dstVirW - 1;
 	clip.ymin = 0;
 	clip.ymax = dstVirH - 1;
-	
 
-	ditherEn = (android::bytesPerPixel(relSrcRect.format) 
+    /* Register parameters */
+	ditherEn = (android::bytesPerPixel(relSrcRect.format)
 			!= android::bytesPerPixel(relSrcRect.format) ? 1 : 0);
 
     if(is_out_log())
         ALOGD("rgaVersion = %lf  , ditherEn =%d ",ctx->mVersion,ditherEn);
-    
-	//only to configure the parameter by driver version, because rga driver has too many version.
+
+	/* According to RGA version to configure rgaReg */
+    /* RGA version < 1.0003 */
     if (ctx->mVersion <= (float)1.003) {
         srcMmuFlag = dstMmuFlag = 1;
-
 #if defined(__arm64__) || defined(__aarch64__)
+        /*src*/
         NormalRgaSetSrcVirtualInfo(&rgaReg, (unsigned long)srcBuf,
-        		(unsigned long)srcBuf + srcVirW * srcVirH, 
+                (unsigned long)srcBuf + srcVirW * srcVirH,
         		(unsigned long)srcBuf + srcVirW * srcVirH * 5/4,
         		srcVirW, srcVirH,
         		RkRgaGetRgaFormat(relSrcRect.format),0);
         /*dst*/
         NormalRgaSetDstVirtualInfo(&rgaReg, (unsigned long)dstBuf,
-        		(unsigned long)dstBuf + dstVirW * dstVirH,
+                (unsigned long)dstBuf + dstVirW * dstVirH,
         		(unsigned long)dstBuf + dstVirW * dstVirH * 5/4,
         		dstVirW, dstVirH, &clip,
         		RkRgaGetRgaFormat(relDstRect.format),0);
 #else
+        /*src*/
         NormalRgaSetSrcVirtualInfo(&rgaReg, (unsigned long)srcBuf,
-        		(unsigned int)srcBuf + srcVirW * srcVirH, 
+        		(unsigned int)srcBuf + srcVirW * srcVirH,
         		(unsigned int)srcBuf + srcVirW * srcVirH * 5/4,
         		srcVirW, srcVirH,
         		RkRgaGetRgaFormat(relSrcRect.format),0);
@@ -766,9 +820,9 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
         		(unsigned int)dstBuf + dstVirW * dstVirH * 5/4,
         		dstVirW, dstVirH, &clip,
         		RkRgaGetRgaFormat(relDstRect.format),0);
-        
+
 #endif
-		//the version 1.005 is different to assign fd from version 2.0 and above
+		/* 1.003 < RGA version < 1.6 */
         } else if (ctx->mVersion < (float)1.6) {
             /*Src*/
             if (srcFd != -1) {
@@ -787,13 +841,13 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
             		srcMmuFlag = 0;
 #if defined(__arm64__) || defined(__aarch64__)
             	NormalRgaSetSrcVirtualInfo(&rgaReg, (unsigned long)srcBuf,
-            			(unsigned long)srcBuf + srcVirW * srcVirH, 
+            			(unsigned long)srcBuf + srcVirW * srcVirH,
             			(unsigned long)srcBuf + srcVirW * srcVirH * 5/4,
             			srcVirW, srcVirH,
             			RkRgaGetRgaFormat(relSrcRect.format),0);
 #else
             	NormalRgaSetSrcVirtualInfo(&rgaReg, (unsigned int)srcBuf,
-            			(unsigned int)srcBuf + srcVirW * srcVirH, 
+            			(unsigned int)srcBuf + srcVirW * srcVirH,
             			(unsigned int)srcBuf + srcVirW * srcVirH * 5/4,
             			srcVirW, srcVirH,
             			RkRgaGetRgaFormat(relSrcRect.format),0);
@@ -829,6 +883,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
             			RkRgaGetRgaFormat(relDstRect.format),0);
 #endif
             }
+        /* RGA version > 1.6 */
         } else {
         if (src && src->hnd)
         	srcMmuFlag = srcType ? 1 : 0;
@@ -852,23 +907,23 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
         if (dst && dstFd == dst->fd)
         	dstMmuFlag = dst->mmuFlag ? 1 : 0;
 
-        
+
 #if defined(__arm64__) || defined(__aarch64__)
         NormalRgaSetSrcVirtualInfo(&rgaReg, srcFd != -1 ? srcFd : 0,
-        		(unsigned long)srcBuf, 
+                (unsigned long)srcBuf,
         		(unsigned long)srcBuf + srcVirW * srcVirH,
         		srcVirW, srcVirH,
         		RkRgaGetRgaFormat(relSrcRect.format),0);
         /*dst*/
         NormalRgaSetDstVirtualInfo(&rgaReg, dstFd != -1 ? dstFd : 0,
-        		(unsigned long)dstBuf,
+                (unsigned long)dstBuf,
         		(unsigned long)dstBuf + dstVirW * dstVirH,
         		dstVirW, dstVirH, &clip,
         		RkRgaGetRgaFormat(relDstRect.format),0);
 
 #else
         NormalRgaSetSrcVirtualInfo(&rgaReg, srcFd != -1 ? srcFd : 0,
-        		(unsigned int)srcBuf, 
+        		(unsigned int)srcBuf,
         		(unsigned int)srcBuf + srcVirW * srcVirH,
         		srcVirW, srcVirH,
         		RkRgaGetRgaFormat(relSrcRect.format),0);
@@ -882,55 +937,64 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 #endif
         }
 
-	//set effective area of src and dst.
+	/* Configure graphics attribute to rgaReg */
 	NormalRgaSetSrcActiveInfo(&rgaReg, srcActW, srcActH, srcXPos, srcYPos);
 	NormalRgaSetDstActiveInfo(&rgaReg, dstActW, dstActH, dstXPos, dstYPos);
-//    NormalRgaSetPatActiveInfo(&rgaReg, src1ActW, src1ActH, src1XPos, src1YPos);
 
-	//special config for yuv to rgb
+	/* Special config for yuv to rgb */
 	if (NormalRgaIsYuvFormat(RkRgaGetRgaFormat(relSrcRect.format)) &&
 			NormalRgaIsRgbFormat(RkRgaGetRgaFormat(relDstRect.format)))
 		yuvToRgbMode |= 0x1 << 0;
 
-	//special config for rgb to yuv
+	/* Special config for rgb to yuv */
 	if (NormalRgaIsRgbFormat(RkRgaGetRgaFormat(relSrcRect.format)) &&
 			NormalRgaIsYuvFormat(RkRgaGetRgaFormat(relDstRect.format)))
-		yuvToRgbMode |= 0x1 << 4;
+		yuvToRgbMode |= 0x2 << 4;
 
-	/*mode*/
-	//scaleMode:set different algorithm to scale.
-	//rotateMode:rotation mode
-	//Orientation:rotation orientation
-	//ditherEn:enable or not.
-	//yuvToRgbMode:yuv to rgb, rgb to yuv , or others
+	/* Configure mode to rgaReg :
+	 *   ScaleMode    : set different algorithm to scale.
+	 *   RotateMode   : rotation mode
+	 *   Orientation  : rotation orientation
+	 *   YuvToRgbMode : yuv to rgb, rgb to yuv , or others
+	 */
 	NormalRgaSetBitbltMode(&rgaReg, scaleMode, rotateMode, orientation,
 			ditherEn, 0, yuvToRgbMode);
 
+    /* Configure mmu to rgaReg */
 	if (srcMmuFlag || dstMmuFlag) {
 		NormalRgaMmuInfo(&rgaReg, 1, 0, 0, 0, 0, 2);
 		NormalRgaMmuFlag(&rgaReg, srcMmuFlag, dstMmuFlag);
 	}
 
-	/*color key*/
-	//if need this funtion, maybe should patch the rga driver.
+	/* Color key */
+	/* This special Interface need kernel support,always closed */
 	if(src->colorkey_en == 1) {
 		NormalRgaSetSrcTransModeInfo(&rgaReg, 0, 1, 1, 1, 1, src->colorkey_min, src->colorkey_max, 1);
 	}
+	/* ROP */
+	/* This special Interface can do some basic logical operations */
+	if(src->rop_code > 0)
+    {
+        rgaReg.rop_code = src->rop_code;
+        rgaReg.alpha_rop_flag = 0x3;
+        rgaReg.alpha_rop_mode = 0x1;
 
+    }
+    /* Output rgaReg configuration */
     if(is_out_log()){
-	ALOGD("srcMmuFlag = %d , dstMmuFlag = %d , rotateMode = %d \n", srcMmuFlag, dstMmuFlag,rotateMode);
-    ALOGD("<<<<-------- rgaReg -------->>>>\n");
-	NormalRgaLogOutRgaReq(rgaReg);
+        ALOGD("srcMmuFlag = %d , dstMmuFlag = %d , rotateMode = %d \n", srcMmuFlag, dstMmuFlag,rotateMode);
+        ALOGD("<<<<-------- rgaReg -------->>>>\n");
+        NormalRgaLogOutRgaReq(rgaReg);
 	}
 
-#ifndef RK3368	
+#ifndef RK3368
 #ifdef	ANDROID_7_DRM
-	//if Android 7.0 and above using drm should configure this parameter.
+	/* Android > 7.0 and using drm should configure this parameter.*/
 	rgaReg.render_mode |= RGA_BUF_GEM_TYPE_DMA;
 #endif
 #endif
 
-	//using sync to pass config to rga driver.
+	/* Configure rga driver by RGA_BLIT_SYNC */
 	if(ioctl(ctx->rgaFd, RGA_BLIT_SYNC, &rgaReg)) {
 		printf(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
 		ALOGE(" %s(%d) RGA_BLIT fail: %s",__FUNCTION__, __LINE__,strerror(errno));
@@ -938,10 +1002,16 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	return 0;
 }
 
+/*************************************************
+ * Function:       RgaCollorFill()
+ * Description:    To fill a collor to a memory
+ * Input:          rga_info contains image_info such as fd ,virAddr,w,h and so on
+ * Return:         ret:
+ *                   0   : succee
+ *                   !=0 : errno
+ ************************************************/
 int RgaCollorFill(rga_info *dst)
 {
-	//check rects
-	//check buffer_handle_t with rects
 	struct rgaContext *ctx = rgaCtx;
 	int dstVirW,dstVirH,dstActW,dstActH,dstXPos,dstYPos;
 	int scaleMode,ditherEn;
@@ -959,7 +1029,12 @@ int RgaCollorFill(rga_info *dst)
 		ALOGE("Try to use uninit rgaCtx=%p",ctx);
 		return -ENODEV;
 	}
+    /* Call is_debug_log() to get value from property sys.rga.log  */
+    is_debug_log();
 
+    /* Call is_out_log() to decide whether output debug log */
+    if(is_out_log())
+        ALOGD("<<<<-------- print rgaLog -------->>>>");
 	memset(&rgaReg, 0, sizeof(struct rga_req));
 
 	dstType = dstMmuFlag = 0;
@@ -1034,7 +1109,7 @@ int RgaCollorFill(rga_info *dst)
 	clip.ymin = 0;
 	clip.ymax = dstActH - 1;
 
-	if (ctx->mVersion <= 1.003) {
+	if (ctx->mVersion <= (float)1.003) {
 #if defined(__arm64__) || defined(__aarch64__)
 		/*dst*/
 		NormalRgaSetDstVirtualInfo(&rgaReg, (unsigned long)dstBuf,
@@ -1050,7 +1125,7 @@ int RgaCollorFill(rga_info *dst)
 				dstVirW, dstVirH, &clip,
 				RkRgaGetRgaFormat(relDstRect.format),0);
 #endif
-	} else if (ctx->mVersion < 1.6 ) {
+	} else if (ctx->mVersion < (float)1.6 ) {
 		/*dst*/
 		if (dstFd != -1) {
 			dstMmuFlag = dstType ? 1 : 0;
@@ -1121,10 +1196,13 @@ int RgaCollorFill(rga_info *dst)
 		NormalRgaMmuFlag(&rgaReg, dstMmuFlag, dstMmuFlag);
 	}
 
-	//ALOGD("%d,%d,%d", srcMmuFlag, dstMmuFlag,rotateMode);
-	//NormalRgaLogOutRgaReq(rgaReg);
+    /* Output rgaReg configuration */
+    if(is_out_log()){
+        ALOGD("<<<<-------- rgaReg -------->>>>\n");
+        NormalRgaLogOutRgaReq(rgaReg);
+	}
 
-#ifndef RK3368	
+#ifndef RK3368
 #ifdef	ANDROID_7_DRM
 	rgaReg.render_mode |= RGA_BUF_GEM_TYPE_DMA;
 #endif

@@ -84,12 +84,12 @@ int main()
 	/********** SrcInfo set **********/
     srcWidth = 1280;
     srcHeight = 720;
-	srcFormat = HAL_PIXEL_FORMAT_RGBA_8888;
+	srcFormat = HAL_PIXEL_FORMAT_YCrCb_NV12;
 
 	/********** DstInfo set **********/
-    dstWidth = 720;
-    dstHeight = 1280;
-	dstFormat = HAL_PIXEL_FORMAT_RGBA_8888;
+    dstWidth = 1280;
+    dstHeight = 720;
+	dstFormat = HAL_PIXEL_FORMAT_YCrCb_NV12;
 
     RockchipRga& rkRga(RockchipRga::get());
 
@@ -164,7 +164,14 @@ int main()
     } else 
         printf("lock buffer_dst %s \n","ok");
 
-    memset(buf,0x00,4*720*1080);
+	/********** buffer initialize **********/
+	/* Notice :
+	 *          RGBA8888 4 bytes
+	 *          YUV      1.5 bytes
+	 *          RGB565   2 bytes
+	 * so,if you want to memset YUV_buffer please 1.5*xx*xx
+	 */
+	memset(buf,0x00,1.5*720*1280);
 
     ret = gbd->unlock();
     if (ret) {

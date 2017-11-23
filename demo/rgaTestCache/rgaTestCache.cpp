@@ -138,7 +138,7 @@ int main()
     struct timeval tpend1, tpend2;
 	long usec1 = 0;
 	//gettimeofday(&tpend1, NULL);
-	
+
     memset(buf,0x00,4*1280*720);
 	
     //gettimeofday(&tpend2, NULL);
@@ -163,7 +163,7 @@ int main()
 	
 	//usec1 = 0;
 	//gettimeofday(&tpend1, NULL);
-	
+
     memset(buf2,0x55,4*1280*720);
 	
     //gettimeofday(&tpend2, NULL);
@@ -242,7 +242,7 @@ int main()
 	usec1 = 0;
 	struct timeval tpend3, tpend4;
 	//gettimeofday(&tpend3, NULL);
-	
+
     memset(buf,0x00,4*1280*720);
 	
     //gettimeofday(&tpend4, NULL);
@@ -252,7 +252,7 @@ int main()
 	
 	//usec1 = 0;
 	//gettimeofday(&tpend3, NULL);
-	
+
     memset(buf2,0x55,4*1280*720);
 	
     //gettimeofday(&tpend4, NULL);
