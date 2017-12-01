@@ -201,7 +201,7 @@ int RkRgaGetHandleMapAddress(buffer_handle_t handle,
 {
 	int usage = GRALLOC_USAGE_SW_READ_MASK | GRALLOC_USAGE_SW_WRITE_MASK;
 #ifdef ANDROID_7_DRM
-	usage |= GRALLOC_USAGE_HW_FB;
+	usage |= GRALLOC_USAGE_HW_FB | GRALLOC_USAGE_HW_TEXTURE;
 #endif
 	int ret = 0;
 

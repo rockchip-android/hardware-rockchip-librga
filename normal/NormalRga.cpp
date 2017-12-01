@@ -495,8 +495,11 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	}
 
     /* If fd is illegal,use fd from user */
-	if (src && srcFd < 0)
+	if (src && srcFd < 0) {
 		srcFd = src->fd;
+		src->mmuFlag = 1;
+		dst->mmuFlag = 1;
+	}
 
     /* Output address_info from user */
     if(is_out_log())
