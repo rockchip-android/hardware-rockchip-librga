@@ -511,7 +511,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 	else if (src && src->virAddr)
 		srcBuf = src->virAddr;
     /* Android 8.0 can't use handle to get virAddr */
-#ifndef RK3368_ANDROID_8
+#ifndef ANDROID_8
 	else if (src && src->hnd)
 		ret = RkRgaGetHandleMapAddress(src->hnd, &srcBuf);
 #endif
@@ -541,7 +541,7 @@ int RgaBlit(rga_info *src, rga_info *dst, rga_info *src1)
 		dstBuf = dst->phyAddr;
 	else if (dst && dst->virAddr)
 		dstBuf = dst->virAddr;
-#ifndef RK3368_ANDROID_8
+#ifndef ANDROID_8
 	else if (dst && dst->hnd)
 		ret = RkRgaGetHandleMapAddress(dst->hnd, &dstBuf);
 #endif
